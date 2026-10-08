@@ -1,0 +1,26 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+.env
+.DS_Store
+Thumbs.db
+
+# Raw and cached market data (rebuild with make data)
+data/
+*.zip
+
+# Local experiment dumps; keep metrics.json and selected README figures
+results/*.parquet
+results/*.pkl
+results/*.csv
+results/*.log

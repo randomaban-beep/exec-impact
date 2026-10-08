@@ -1,0 +1,87 @@
+# Research config. Every estimator uses data strictly before decision time.
+# Numbers in README must be reproducible from this file + the git commit.
+
+seed: 42
+
+symbols:
+  - BTCUSDT
+  - ETHUSDT
+
+market: spot
+data_source: data.binance.vision
+data_kind: aggTrades
+
+# Main study month. Includes US spot Bitcoin ETF approval (2024-01-10) volatility.
+# Document that regime in the README; do not treat it as a typical month.
+month: "2024-01"
+
+# Calmer robustness month. Run only after main 2024-01 results are complete.
+robustness_month: "2024-07"
+run_robustness: false
+
+paths:
+  data_dir: data
+  results_dir: results
+
+fees:
+  taker_fee_bps: 4.0
+
+bars:
+  interval: 1m
+  # Empty minutes are kept and contribute a zero close-to-close return.
+  fill_empty_minutes: true
+  empty_return: 0.0
+
+# ONE consistent sigma everywhere (impact normalization and Almgren-Chriss).
+# Close-to-close log returns on 1m bars; empty minutes -> 0 return.
+# Coarser intervals use realized variance from those 1m returns (e.g. 5m-sampled).
+# Intra-bar RV is an optional diagnostic column only — never used for sigma.
+sigma:
+  method: close_to_close_1m
+  lookback_bars: 1440
+  intra_bar_diagnostic: true
+
+volume:
+  lookback_bars: 1440
+
+impact:
+  intervals: [1m, 5m, 15m]
+  perm_lag_k: 5
+  huber_epsilon: 1.35
+  bootstrap_samples: 1000
+  oos_fit_weeks: [1, 2]
+  oos_eval_weeks: [3, 4]
+  fixed_delta: 0.5
+
+vwap:
+  profile_lookback_days: 7
+
+schedules:
+  n_child_slices:
+    30m: 6
+    1h: 12
+    4h: 24
+
+# Linearize power-law temporary impact by VALUE-MATCHING at the child-slice
+# participation rate implied by ref_adv_frac, horizon T, and N (not parent/ADV).
+# Reference rate is estimated from prior data only.
+ac_linearization:
+  ref_adv_frac: 0.1
+  ref_adv_frac_sensitivity: [0.05, 0.1, 0.5]
+  match: value
+
+lambda_grid: [1.0e-8, 1.0e-6, 1.0e-4, 1.0e-2, 1.0, 1.0e2]
+
+grid:
+  adv_frac: [0.01, 0.05, 0.1, 0.5, 1.0]
+  horizons: [30m, 1h, 4h]
+  sides: [buy, sell]
+
+simulation:
+  n_replay_starts: 500
+  mode_tape_replay: true
+  mode_synthetic_mc: true
+  synthetic_n_paths: 1000
+
+stretch:
+  power_law_optimize: false
